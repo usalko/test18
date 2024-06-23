@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Initialize go.work file if not exists
+if ! [ -f 'go.work' ]; then
+    cat >'go.work' <<EOF
+go 1.21.2
+
+use (
+	./src
+	./tests
+)
+EOF
+fi
+
+# Initialize .env file if not exists
+if [ -f '.env' ]; then
+    echo Use .env file to read sensitive information
+    while IPS='=' read -r key _; do
+        eval "${key}"
+    done <'.env'
+else
+    # REGENERATE SENSITIVE INFO FROM TEMPLATE
+    cat >'.env' <<EOF
+# Env file
+EOF
+fi
+
+
+go test ./tests
+
