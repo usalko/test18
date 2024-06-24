@@ -1,9 +1,11 @@
 #!/bin/bash
 
+GO_VERSION=1.21.2
+
 # Initialize go.work file if not exists
 if ! [ -f 'go.work' ]; then
     cat >'go.work' <<EOF
-go 1.21.2
+go $GO_VERSION
 
 use (
 	./src
@@ -25,6 +27,38 @@ else
 EOF
 fi
 
+# ========================== COMMAND PARSER
 
-go test ./tests
+COMMAND=$1
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+    --go-version)
+        GO_VERSION="$2"
+        shift
+        shift
+        ;;
+    *)
+        COMMAND=$1
+        shift
+        break
+        ;;
+    esac
+    shift
+done
+
+if [ "$COMMAND" == "test" ]; then
+	go test -run '' ./tests
+fi
+
+
+if [ "$COMMAND" == "up" ]; then
+	CD=$PWD
+	cd tests || exit 1
+	go get -u github.com/stretchr/testify .
+	cd $CD || exit 1
+fi
+
+AVAILABLE_COMMANDS="test up"
+echo ''
+[[ $AVAILABLE_COMMANDS =~ (^| )$COMMAND($| ) ]] && echo 'Ok' || (echo 'Unknown command: ' "$COMMAND" && echo 'Available commands are: ' "$AVAILABLE_COMMANDS")
 
